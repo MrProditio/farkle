@@ -1,17 +1,18 @@
 {
-    "name" : "farkle",
-    "title" : "Farkle",
-    "description" : "Lo que sea",
-    "version" : "1.0.0",
-    "author" : "Proditio & Copilot",
-    "minimumCoreVersion" : "10",
-    "compatibleCoreVersion" : "13",
-    "scripts" : ["scripts/farkle.js"],
-    "socket" : true,
-    "esmodules" : [],
-    "styles" : [],
-    "packs" : [],
-    "system" : [],
-    "manifest" : "URL",
-    "download" : "URL"
+  "name": "farkle",
+  "title": "Farkle para Foundry",
+  "description": "Minijuego de dados para Foundry VTT",
+  "version": "1.0.0",
+  "author": "Proditio & Copilot",
+  "minimumCoreVersion": "13",
+  "compatibleCoreVersion": "13",
+  "scripts": [
+    "scripts/farkle-controller.js",
+    "scripts/farkle-listener.js",
+    "scripts/farkle-turn.js",
+    "scripts/farkle-utils.js"
+  ],
+  "esmodules": [],
+  "manifest": "https://raw.githubusercontent.com/MrProditio/farkle/main/module.json",
+  "download": "https://github.com/MrProditio/farkle/archive/main.zip"
 }
