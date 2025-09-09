@@ -1,0 +1,17 @@
+{
+    "name" : "farkle",
+    "title" : "Farkle",
+    "description" : "Lo que sea",
+    "version" : "1.0.0",
+    "author" : "Proditio & Copilot",
+    "minimumCoreVersion" : "10",
+    "compatibleCoreVersion" : "13",
+    "scripts" : ["scripts/farkle.js"],
+    "socket" : true,
+    "esmodules" : [],
+    "styles" : [],
+    "packs" : [],
+    "system" : [],
+    "manifest" : "URL",
+    "download" : "URL"
+}
