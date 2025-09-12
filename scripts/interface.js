@@ -9,6 +9,7 @@ let apartados = [];
 let tiradaActual = [];
 let puntuacionActual = 0;
 
+// === INICIO DEL JUEGO ===
 export function mostrarConfiguracionInicial() {
   new Dialog({
     title: "🎲 Configuración de la partida Farkle",
@@ -175,7 +176,64 @@ export async function crearMensajeTirada() {
   });
 }
 
-// 👇 Esta línea expone la función al espacio global de Foundry
-game.farkle = {
-  iniciar: mostrarConfiguracionInicial
-};
+// === REGISTRO GLOBAL Y CREACIÓN DE MACRO/JOURNAL ===
+Hooks.once("ready", async () => {
+  // Exponer API global
+  game.farkle = {
+    iniciar: mostrarConfiguracionInicial
+  };
+
+  // Crear carpeta si no existe
+  let folder = game.folders.find(f => f.name === "Farkle - Juego de Dados");
+  if (!folder) {
+    folder = await Folder.create({
+      name: "Farkle - Juego de Dados",
+      type: "Macro",
+      color: "#ff9800"
+    });
+  }
+
+  // Crear Macro si no existe
+  let macro = game.macros.find(m => m.name === "Farkle");
+  if (!macro) {
+    await Macro.create({
+      name: "Farkle",
+      type: "script",
+      img: "modules/farkle/assets/Farkle.webp", // icono personalizado
+      folder: folder.id,
+      command: `
+if (!game.farkle) {
+  ui.notifications.warn("El módulo Farkle no está cargado.");
+} else {
+  game.farkle.iniciar();
+}`
+    });
+  }
+
+  // Crear Entrada de Diario con reglas si no existe
+  let journal = game.journal.find(j => j.name === "Reglas del Farkle");
+  if (!journal) {
+    await JournalEntry.create({
+      name: "Reglas del Farkle",
+      folder: folder.id,
+      pages: [{
+        name: "Reglas",
+        type: "text",
+        text: {
+          format: 1,
+          content: `
+<h2>🎲 Reglas de Farkle</h2>
+<ul>
+  <li>Tira 6 dados.</li>
+  <li>Tres unos = 1000 pts</li>
+  <li>Tres de cualquier otro número = valor × 100</li>
+  <li>Unos individuales = 100 pts</li>
+  <li>Cincos individuales = 50 pts</li>
+  <li>Si no sacas nada que puntúe → ¡Farkle! (pierdes el turno)</li>
+</ul>
+`
+        }
+      }]
+    });
+  }
+});
