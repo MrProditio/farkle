@@ -1,0 +1,113 @@
+/* 🎲 Estilos generales para el módulo Farkle */
+.farkle-container {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f0f4ff;
+  border: 1px solid #c0d4f7;
+  border-radius: 8px;
+}
+
+/* 🧮 Encabezados y puntuación */
+.farkle-header {
+  text-align: center;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.farkle-score {
+  text-align: center;
+  margin-top: 8px;
+  font-weight: bold;
+}
+
+/* 🎯 Dados apartados */
+.dados-apartados {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+
+.dado-apartado {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0056b3;
+  border-radius: 4px;
+  background-color: #0056b3;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* 🎲 Dados tirados */
+.dados-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.dado {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  background: transparent;
+  color: #000;
+}
+
+.dado.seleccionado {
+  border-color: #007bff;
+  background-color: #007bff33;
+  color: #000;
+}
+
+/* 📦 Botones */
+.farkle-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.farkle-btn {
+  flex: 1;
+  padding: 10px;
+  font-size: 1em;
+  font-weight: bold;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: background-color 0.3s ease;
+}
+
+.farkle-btn:hover {
+  background-color: #3395ff;
+}
+
+/* 📊 Resumen de partida */
+.farkle-resumen {
+  padding: 6px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  font-weight: normal;
+}
+
+/* 🧾 Separadores */
+.farkle-separador {
+  margin: 10px 0;
+  border: none;
+  border-top: 1px solid #ccc;
+}
