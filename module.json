@@ -1,0 +1,26 @@
+{
+  "name": "farkle",
+  "title": "Farkle - Juego de Dados",
+  "description": "Un módulo para jugar al clásico juego de dados Farkle dentro de Foundry VTT.",
+  "version": "1.1.0",
+  "author": "MrProditio",
+  "minimumCoreVersion": "13",
+  "compatibleCoreVersion": "13",
+  "system": "dnd5e",
+  "systemVersions": ["5.1.8"],
+  "scripts": [
+    "scripts/roll.js",
+    "scripts/scoring.js",
+    "scripts/interface.js"
+  ],
+  "styles": [
+    "css/style.css"
+  ],
+  "manifest": "https://raw.githubusercontent.com/MrProditio/farkle/main/module.json",
+  "download": "https://github.com/MrProditio/farkle/archive/refs/heads/main.zip",
+  "license": "MIT",
+  "esmodules": [],
+  "languages": [],
+  "packs": [],
+  "socket": false
+}
