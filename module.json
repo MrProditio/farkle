@@ -1,4 +1,5 @@
 {
+  "id": "farkle",
   "name": "farkle",
   "title": "Farkle - Juego de Dados",
   "description": "Un módulo para jugar al clásico juego de dados Farkle dentro de Foundry VTT.",
