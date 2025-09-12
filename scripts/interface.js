@@ -174,3 +174,8 @@ export async function crearMensajeTirada() {
     });
   });
 }
+
+// 👇 Esta línea expone la función al espacio global de Foundry
+game.farkle = {
+  iniciar: mostrarConfiguracionInicial
+};
