@@ -174,16 +174,36 @@ export async function crearMensajeTirada() {
       tiradaActual = [];
     });
   });
+
+  // ✅ Verificación de Farkle después de mostrar los dados
+  const valoresTirada = tiradaActual.map(d => d.valor);
+  const puntuacionInicial = calcularPuntuacionFarkle(valoresTirada);
+
+  if (puntuacionInicial === 0) {
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker(),
+      content: `
+        <div style="text-align: center;">
+          <div style="font-size: 1.5em; font-weight: bold;">💥 ¡Farkle!</div>
+          <div style="margin-top: 6px;"><strong>${jugadores[turnoActual]} pierde el turno y no acumula puntos.</strong></div>
+        </div>
+      `
+    });
+
+    apartados = [];
+    tiradaActual = [];
+    puntuacionActual = 0;
+    turnoActual = (turnoActual + 1) % jugadores.length;
+    await iniciarPrimerTurno();
+  }
 }
 
 // === REGISTRO GLOBAL Y CREACIÓN DE MACRO/JOURNAL ===
 Hooks.once("ready", async () => {
-  // Exponer API global
   game.farkle = {
     iniciar: mostrarConfiguracionInicial
   };
 
-  // Crear carpeta si no existe
   let folder = game.folders.find(f => f.name === "Farkle - Juego de Dados");
   if (!folder) {
     folder = await Folder.create({
@@ -193,13 +213,12 @@ Hooks.once("ready", async () => {
     });
   }
 
-  // Crear Macro si no existe
   let macro = game.macros.find(m => m.name === "Farkle");
   if (!macro) {
     await Macro.create({
       name: "Farkle",
       type: "script",
-      img: "modules/farkle/assets/Farkle.webp", // icono personalizado
+      img: "modules/farkle/assets/Farkle.webp",
       folder: folder.id,
       command: `
 if (!game.farkle) {
@@ -210,7 +229,6 @@ if (!game.farkle) {
     });
   }
 
-  // Crear Entrada de Diario con reglas si no existe
   let journal = game.journal.find(j => j.name === "Reglas del Farkle");
   if (!journal) {
     await JournalEntry.create({
@@ -219,9 +237,9 @@ if (!game.farkle) {
       pages: [{
         name: "Reglas",
         type: "text",
-        text: {
-          format: 1,
-          content: `
+              text: {
+        format: 1,
+        content: `
 <h2>🎲 Reglas de Farkle</h2>
 <ul>
   <li>Tira 6 dados.</li>
@@ -232,8 +250,8 @@ if (!game.farkle) {
   <li>Si no sacas nada que puntúe → ¡Farkle! (pierdes el turno)</li>
 </ul>
 `
-        }
-      }]
-    });
-  }
+      }
+    }]
+  });
+}
 });
