@@ -10,6 +10,18 @@ let tiradaActual = [];
 let puntuacionActual = 0;
 
 // === INICIO DEL JUEGO ===
+import { tirarDados } from "./roll.js";
+import { calcularPuntuacionFarkle, calcularPuntuacionTurno, mostrarResumenPuntuacion } from "./scoring.js";
+
+let jugadores = ["Jugador 1", "Jugador 2"];
+let turnoActual = 0;
+let puntuaciones = [0, 0];
+let puntuacionObjetivo = 4000;
+let apartados = [];
+let tiradaActual = [];
+let puntuacionActual = 0;
+
+// === INICIO DEL JUEGO ===
 export function mostrarConfiguracionInicial() {
   new Dialog({
     title: "🎲 Configuración de la partida Farkle",
