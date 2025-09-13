@@ -1,17 +1,13 @@
 {
   "id": "farkle",
-  "name": "farkle",
   "title": "Farkle - Juego de Dados",
   "description": "Un módulo para jugar al clásico juego de dados Farkle dentro de Foundry VTT.",
   "version": "1.1.5",
-  "author": "MrProditio",
   "compatibility": {
     "minimum": "13",
     "verified": "13",
     "maximum": "13"
     },
-  "system": "dnd5e",
-  "systemVersions": ["5.1.8"],
   "scripts": [
     "scripts/setup.js",
     "scripts/roll.js",
