@@ -129,19 +129,25 @@ export async function crearMensajeTirada() {
     });
 
     htmlElement.find(".btn-tirar").on("click", async () => {
-      const seleccionados = tiradaActual.filter(d => d.seleccionado);
-      if (seleccionados.length === 0) {
-        ui.notifications.warn("Debes seleccionar al menos un dado para apartar.");
-        return;
-      }
+  const seleccionados = tiradaActual.filter(d => d.seleccionado);
+  if (seleccionados.length === 0) {
+    ui.notifications.warn("Debes seleccionar al menos un dado para apartar.");
+    return;
+  }
 
-      const puntos = calcularPuntuacionFarkle(seleccionados.map(d => d.valor));
-      puntuacionActual += puntos;
-      apartados = apartados.concat(seleccionados);
+  const puntos = calcularPuntuacionFarkle(seleccionados.map(d => d.valor));
 
-      const dadosRestantes = tiradaActual.filter(d => !d.seleccionado);
-      await tirarDadosRestantes(dadosRestantes, crearMensajeTirada);
-    });
+  if (puntos === 0) {
+    ui.notifications.warn("La combinación seleccionada no es válida. Debes seleccionar solo dados puntuables.");
+    return;
+  }
+
+  puntuacionActual += puntos;
+  apartados = apartados.concat(seleccionados);
+
+  const dadosRestantes = tiradaActual.filter(d => !d.seleccionado);
+  await tirarDadosRestantes(dadosRestantes, crearMensajeTirada);
+});
 
     htmlElement.find(".btn-plantarse").on("click", async () => {
       const seleccionados = tiradaActual.filter(d => d.seleccionado);
@@ -185,6 +191,30 @@ export async function crearMensajeTirada() {
       apartados = [];
       tiradaActual = [];
     });
+
+    setTimeout(async () => {
+  const valoresTirada = tiradaActual.map(d => d.valor);
+  const puntuacionInicial = calcularPuntuacionFarkle(valoresTirada);
+
+  if (puntuacionInicial === 0) {
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker(),
+      content: `
+        <div style="text-align: center;">
+          <div style="font-size: 1.5em; font-weight: bold;">💥 ¡Farkle!</div>
+          <div style="margin-top: 6px;"><strong>${jugadores[turnoActual]} pierde el turno y no acumula puntos.</strong></div>
+        </div>
+      `
+    });
+
+    apartados = [];
+    tiradaActual = [];
+    puntuacionActual = 0;
+    turnoActual = (turnoActual + 1) % jugadores.length;
+    await iniciarPrimerTurno();
+  }
+}, 100);
+
   });
 
   // ✅ Verificación de Farkle dentro del render, tras mostrar los dados

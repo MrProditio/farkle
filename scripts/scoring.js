@@ -14,18 +14,9 @@ export function calcularPuntuacionFarkle(dados) {
   const totalDados = dados.length;
   let puntos = 0;
 
-  // 🧩 Escaleras
+  // 🧩 Escalera completa
   const esEscaleraCompleta = totalDados === 6 && dadosUnicos.join('') === '123456';
-  const esEscaleraParcial1 = totalDados >= 5 && dadosUnicos.slice(0, 5).join('') === '12345';
-  const esEscaleraParcial2 = totalDados >= 5 && dadosUnicos.slice(0, 5).join('') === '23456';
-
   if (esEscaleraCompleta) return 1500;
-  if (esEscaleraParcial1 || esEscaleraParcial2) {
-    puntos += esEscaleraParcial1 ? 500 : 750;
-    puntos += counts[1] * 100;
-    puntos += counts[5] * 50;
-    return puntos;
-  }
 
   // 🎯 Tríos y superiores
   const combinaciones = [];
@@ -49,14 +40,24 @@ export function calcularPuntuacionFarkle(dados) {
     }
   }
 
-  const hayDadosNoPuntuables = dadosRestantes.some(d => ![1, 5].includes(d));
-  const hayDadosPuntuables = dadosRestantes.some(d => [1, 5].includes(d));
+  const hayNoPuntuables = dadosRestantes.some(d => ![1, 5].includes(d));
+  const hayPuntuables = dadosRestantes.some(d => [1, 5].includes(d));
 
-  if (hayDadosPuntuables && hayDadosNoPuntuables) return 0;
-  if (hayDadosPuntuables && !hayDadosNoPuntuables) puntos += puntosIndividuales;
-  if (!hayDadosPuntuables && combinaciones.length === 0) return 0;
+  // ❌ Si hay mezcla de puntuables y no puntuables, invalida la selección
+  if (hayPuntuables && hayNoPuntuables) return 0;
+
+  // ✅ Si solo hay puntuables, se suman
+  if (hayPuntuables && !hayNoPuntuables) puntos += puntosIndividuales;
+
+  // ❌ Si no hay puntuables ni combinaciones, es inválido
+  if (!hayPuntuables && combinaciones.length === 0) return 0;
 
   return puntos;
+}
+
+export function calcularPuntuacionTurno(apartados, seleccionados) {
+  const todos = apartados.concat(seleccionados).map(d => d.valor);
+  return calcularPuntuacionFarkle(todos);
 }
 
 /**
