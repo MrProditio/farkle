@@ -11,37 +11,52 @@ export function calcularPuntuacionFarkle(dados) {
   for (const d of dados) counts[d]++;
 
   const dadosUnicos = [...new Set(dados)].sort((a, b) => a - b);
+  const totalDados = dados.length;
   let puntos = 0;
 
-  // 🧩 Combinaciones especiales (sin contar 1s y 5s por separado)
-  const esEscaleraCompleta = dadosUnicos.length === 6 && dadosUnicos.join('') === '123456';
-  const esEscaleraParcial1 = dadosUnicos.length === 5 && dadosUnicos.join('') === '12345';
-  const esEscaleraParcial2 = dadosUnicos.length === 5 && dadosUnicos.join('') === '23456';
+  // 🧩 Escaleras
+  const esEscaleraCompleta = totalDados === 6 && dadosUnicos.join('') === '123456';
+  const esEscaleraParcial1 = totalDados >= 5 && dadosUnicos.slice(0, 5).join('') === '12345';
+  const esEscaleraParcial2 = totalDados >= 5 && dadosUnicos.slice(0, 5).join('') === '23456';
 
   if (esEscaleraCompleta) return 1500;
-  if (esEscaleraParcial1) return 500;
-  if (esEscaleraParcial2) return 750;
-
-  let hayCombinacion = false;
+  if (esEscaleraParcial1 || esEscaleraParcial2) {
+    puntos += esEscaleraParcial1 ? 500 : 750;
+    puntos += counts[1] * 100;
+    puntos += counts[5] * 50;
+    return puntos;
+  }
 
   // 🎯 Tríos y superiores
+  const combinaciones = [];
   for (let v = 1; v <= 6; v++) {
     const cantidad = counts[v];
     if (cantidad >= 3) {
-      hayCombinacion = true;
       const base = v === 1 ? 1000 : v * 100;
-      const extraMultiplicador = Math.pow(2, cantidad - 3); // trío = x1, cuarteto = x2, etc.
+      const extraMultiplicador = Math.pow(2, cantidad - 3);
       puntos += base * extraMultiplicador;
-      counts[v] -= cantidad; // eliminar todos los dados usados en la combinación
+      combinaciones.push(v);
+      counts[v] -= cantidad;
     }
   }
 
-  // 🎯 1s y 5s individuales (solo si no fueron parte de tríos)
-  if (counts[1] > 0 || counts[5] > 0) hayCombinacion = true;
-  puntos += counts[1] * 100;
-  puntos += counts[5] * 50;
+  // 🎯 1s y 5s individuales
+  const puntosIndividuales = counts[1] * 100 + counts[5] * 50;
+  const dadosRestantes = [];
+  for (let v = 1; v <= 6; v++) {
+    for (let i = 0; i < counts[v]; i++) {
+      dadosRestantes.push(v);
+    }
+  }
 
-  return hayCombinacion ? puntos : 0;
+  const hayDadosNoPuntuables = dadosRestantes.some(d => ![1, 5].includes(d));
+  const hayDadosPuntuables = dadosRestantes.some(d => [1, 5].includes(d));
+
+  if (hayDadosPuntuables && hayDadosNoPuntuables) return 0;
+  if (hayDadosPuntuables && !hayDadosNoPuntuables) puntos += puntosIndividuales;
+  if (!hayDadosPuntuables && combinaciones.length === 0) return 0;
+
+  return puntos;
 }
 
 /**

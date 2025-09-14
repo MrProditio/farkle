@@ -187,7 +187,8 @@ export async function crearMensajeTirada() {
     });
   });
 
-  // ✅ Verificación de Farkle después de mostrar los dados
+  // ✅ Verificación de Farkle dentro del render, tras mostrar los dados
+setTimeout(async () => {
   const valoresTirada = tiradaActual.map(d => d.valor);
   const puntuacionInicial = calcularPuntuacionFarkle(valoresTirada);
 
@@ -208,7 +209,7 @@ export async function crearMensajeTirada() {
     turnoActual = (turnoActual + 1) % jugadores.length;
     await iniciarPrimerTurno();
   }
-}
+}, 100); // pequeño retardo para asegurar renderizado
 
 // === REGISTRO GLOBAL Y CREACIÓN DE MACRO/JOURNAL ===
 Hooks.once("ready", async () => {
