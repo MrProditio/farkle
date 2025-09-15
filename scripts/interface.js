@@ -46,104 +46,78 @@ async function iniciarPrimerTurno() {
   });
 
   Hooks.once("renderChatMessage", (message, htmlElement) => {
-    if (message.id !== msg.id) return;
-    htmlElement.find(".btn-inicial").off("click").on("click", async () => {
-      apartados = [];
-      puntuacionActual = 0;
-      tiradaActual = await tirarDados(6);
-      await crearMensajeTirada();
-    });
-  });
-}
+  if (message.id !== msg.id) return;
 
-export async function crearMensajeTirada() {
-  const valoresTirada = tiradaActual.map(d => d.valor);
-  const puntuacionSeleccionada = calcularPuntuacionFarkle(
-    tiradaActual.filter(d => d.seleccionado).map(d => d.valor)
-  );
-  const esFarkle = calcularPuntuacionFarkle(valoresTirada) === 0;
-
-  const apartadosHTML = apartados.length > 0 ? `
-    <div class="farkle-container">
-      <div class="farkle-header">🎯 Dados apartados</div>
-      <div class="dados-apartados">
-        ${apartados.map(d => `<div class="dado-apartado">${d.valor}</div>`).join("")}
-      </div>
-      <hr class="farkle-separador">
-      <div class="farkle-score">Puntos acumulados: ${puntuacionActual}</div>
-    </div>
-  ` : "";
-
-  const tiradaHTML = `
-    <div><strong>🎲 Dados tirados:</strong></div>
-    <div class="dados-grid">
-      ${tiradaActual.map(d => `
-        <div class="dado" data-index="${d.index}">${d.valor}</div>
-      `).join("")}
-    </div>
-  `;
-
-  const mensajeFarkle = esFarkle ? `
-    <div style="text-align: center; margin-top: 10px;">
-      <div style="font-size: 1.5em; font-weight: bold;">💥 ¡Farkle!</div>
-      <div><strong>${jugadores[turnoActual]} pierde el turno y no acumula puntos.</strong></div>
-    </div>
-  ` : "";
-
-  const botonesHTML = !esFarkle ? `
-    <div class="farkle-buttons">
-      <button class="farkle-btn btn-tirar">Tirar de nuevo</button>
-      <button class="farkle-btn btn-plantarse">Plantarse</button>
-      <button class="farkle-btn btn-rendirse">Rendirse</button>
-    </div>
-  ` : "";
-
-  const html = `
-    <div><strong>🔄 Turno de ${jugadores[turnoActual]}</strong></div>
-    ${apartadosHTML}
-    ${tiradaHTML}
-    <div style="margin-top:5px;">Puntuación de la selección actual: <strong class="puntuacion">${puntuacionSeleccionada}</strong></div>
-    ${mensajeFarkle}
-    ${botonesHTML}
-  `;
-
-  const msg = await ChatMessage.create({
-    speaker: ChatMessage.getSpeaker(),
-    content: html
-  });
-
-  Hooks.once("renderChatMessage", (message, htmlElement) => {
-    if (message.id !== msg.id) return;
-
-    if (esFarkle) {
-      apartados = [];
-      tiradaActual = [];
-      puntuacionActual = 0;
-      turnoActual = (turnoActual + 1) % jugadores.length;
-      setTimeout(() => iniciarPrimerTurno(), 500);
-      return;
-    }
-
-  htmlElement.find(".dado").off("click").on("click", function () {
-  const index = Number(this.dataset.index);
-  const dado = tiradaActual.find(d => d.index === index);
-  dado.seleccionado = !dado.seleccionado;
-  this.classList.toggle("seleccionado", dado.seleccionado);
-
-  // 🔹 Recalcular puntuación SOLO de los dados seleccionados
-  const seleccionados = tiradaActual.filter(d => d.seleccionado).map(d => d.valor);
-  const nuevaPuntuacion = calcularPuntuacionFarkle(seleccionados);
-
-  // 🔹 Mostrar puntuación (0 si es combinación inválida)
-  htmlElement.find(".puntuacion").text(nuevaPuntuacion);
-
-  // 🔹 Bloquear o habilitar botón de tirar
-  const btnTirar = htmlElement.find(".btn-tirar");
-  if (nuevaPuntuacion === 0) {
-    btnTirar.addClass("desactivado");
-  } else {
-    btnTirar.removeClass("desactivado");
+  // Si es Farkle, manejamos como antes
+  if (esFarkle) {
+    apartados = [];
+    tiradaActual = [];
+    puntuacionActual = 0;
+    turnoActual = (turnoActual + 1) % jugadores.length;
+    setTimeout(() => iniciarPrimerTurno(), 500);
+    return;
   }
+
+  // Elemento donde mostramos la puntuación de la selección actual
+  const display = htmlElement.find(".puntuacion").first();
+  const displayEl = display.get(0);
+
+  // Función para calcular puntuación de los seleccionados (normalizando a Number)
+  const computeSelectedScore = () => {
+    const seleccionadosVals = tiradaActual
+      .filter(d => d.seleccionado)
+      .map(d => Number(d.valor));
+    return calcularPuntuacionFarkle(seleccionadosVals);
+  };
+
+  // Estado local: puntuación "correcta" que queremos mostrar
+  let currentCorrect = computeSelectedScore();
+  display.text(String(currentCorrect));
+
+  // Observer para detectar si otro código cambia .puntuacion y revertirlo
+  const observer = new MutationObserver(() => {
+    const shown = Number(display.text());
+    if (shown !== currentCorrect) {
+      console.warn("[FARKLE OBS] .puntuacion fue cambiada externamente a", shown, "— vuelvo a", currentCorrect);
+      observer.disconnect();
+      display.text(String(currentCorrect));
+      observer.observe(displayEl, { childList: true, characterData: true, subtree: true });
+    }
+  });
+  if (displayEl) observer.observe(displayEl, { childList: true, characterData: true, subtree: true });
+
+  // --- DEBUG: lista de listeners actualmente en cada dado (útil para detectar handlers duplicados)
+  htmlElement.find(".dado").each((i, el) => {
+    console.log("[FARKLE DEBUG] dado index:", i, "events:", $._data(el, "events"));
+  });
+
+  // Handler único y "source of truth" para clicks en dados
+  htmlElement.find(".dado").off("click").on("click", function () {
+    const index = Number(this.dataset.index);
+    const dado = tiradaActual.find(d => d.index === index);
+    dado.seleccionado = !dado.seleccionado;
+    $(this).toggleClass("seleccionado", dado.seleccionado);
+
+    // recalculamos y actualizamos (siempre usando la función central)
+    currentCorrect = computeSelectedScore();
+    observer.disconnect();
+    display.text(String(currentCorrect));
+    observer.observe(displayEl, { childList: true, characterData: true, subtree: true });
+
+    console.log("[FARKLE DEBUG] seleccionados:", tiradaActual.filter(d=>d.seleccionado).map(d=>({index:d.index, valor:d.valor})));
+    console.log("[FARKLE DEBUG] scoring devolvio:", currentCorrect);
+
+    const btnTirar = htmlElement.find(".btn-tirar");
+    if (currentCorrect === 0) {
+      btnTirar.addClass("desactivado");
+    } else {
+      btnTirar.removeClass("desactivado");
+    }
+  });
+
+  // --- Mantenemos los handlers existentes de botones (btn-tirar, btn-plantarse, btn-rendirse)
+  // (Si ya estaban definidos abajo en tu código, no necesitas mover/duplicar nada;
+  //  si los vas a reinsertar aquí, pégales aquí tal y como los tenías.)
 });
 
     htmlElement.find(".btn-tirar").on("click", async () => {
