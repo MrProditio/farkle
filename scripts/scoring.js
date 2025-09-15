@@ -39,26 +39,26 @@ export function calcularPuntuacionFarkle(dados) {
   }
 
   // 🎯 1s y 5s individuales
-  const puntosIndividuales = counts[1] * 100 + counts[5] * 50;
-  const tiene1sO5s = counts[1] > 0 || counts[5] > 0;
-  const tieneNoValidos = [2, 3, 4, 6].some(v => counts[v] > 0);
+const puntosIndividuales = counts[1] * 100 + counts[5] * 50;
+const tiene1sO5s = counts[1] > 0 || counts[5] > 0;
+const tieneNoValidos = [2, 3, 4, 6].some(v => counts[v] > 0);
 
-  // ✅ Si solo hay 1s y 5s, es válida
-  if (tiene1sO5s && !tieneNoValidos) {
-    puntos += puntosIndividuales;
-    esValida = true;
-  }
+// ✅ Si solo hay 1s y 5s → válida
+if (tiene1sO5s && !tieneNoValidos) {
+  puntos += puntosIndividuales;
+  esValida = true;
+}
 
-  // ✅ Si hay tríos + dados válidos, es válida
-  if (esValida && tiene1sO5s && !tieneNoValidos) {
-    puntos += puntosIndividuales;
-  }
+// ✅ Si hay tríos + 1s o 5s → válida
+if (esValida && tiene1sO5s && !tieneNoValidos) {
+  puntos += puntosIndividuales;
+}
 
-  // ❌ Si hay mezcla de válidos y no válidos sin tríos, es inválida
-  if (tiene1sO5s && tieneNoValidos && !esValida) return 0;
+// ❌ Si hay mezcla de válidos y no válidos sin tríos → inválida
+if (tiene1sO5s && tieneNoValidos && !esValida) return 0;
 
-  // ❌ Si solo hay dados no válidos sin formar tríos, es inválida
-  if (!tiene1sO5s && !esValida) return 0;
+// ❌ Si solo hay dados no válidos → inválida
+if (!tiene1sO5s && !esValida) return 0;
 
   return puntos;
 }
