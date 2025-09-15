@@ -1,14 +1,3 @@
-import { tirarDados } from "./roll.js";
-import { calcularPuntuacionFarkle, calcularPuntuacionTurno, mostrarResumenPuntuacion } from "./scoring.js";
-
-let jugadores = ["Jugador 1", "Jugador 2"];
-let turnoActual = 0;
-let puntuaciones = [0, 0];
-let puntuacionObjetivo = 4000;
-let apartados = [];
-let tiradaActual = [];
-let puntuacionActual = 0;
-
 // === INICIO DEL JUEGO ===
 import { tirarDados } from "./roll.js";
 import { calcularPuntuacionFarkle, calcularPuntuacionTurno, mostrarResumenPuntuacion } from "./scoring.js";
@@ -68,9 +57,11 @@ async function iniciarPrimerTurno() {
 }
 
 export async function crearMensajeTirada() {
+  const valoresTirada = tiradaActual.map(d => d.valor);
   const puntuacionSeleccionada = calcularPuntuacionFarkle(
     tiradaActual.filter(d => d.seleccionado).map(d => d.valor)
   );
+  const esFarkle = calcularPuntuacionFarkle(valoresTirada) === 0;
 
   const apartadosHTML = apartados.length > 0 ? `
     <div class="farkle-container">
@@ -92,19 +83,27 @@ export async function crearMensajeTirada() {
     </div>
   `;
 
-  const botonesHTML = `
+  const mensajeFarkle = esFarkle ? `
+    <div style="text-align: center; margin-top: 10px;">
+      <div style="font-size: 1.5em; font-weight: bold;">💥 ¡Farkle!</div>
+      <div><strong>${jugadores[turnoActual]} pierde el turno y no acumula puntos.</strong></div>
+    </div>
+  ` : "";
+
+  const botonesHTML = !esFarkle ? `
     <div class="farkle-buttons">
       <button class="farkle-btn btn-tirar">Tirar de nuevo</button>
       <button class="farkle-btn btn-plantarse">Plantarse</button>
       <button class="farkle-btn btn-rendirse">Rendirse</button>
     </div>
-  `;
+  ` : "";
 
   const html = `
     <div><strong>🔄 Turno de ${jugadores[turnoActual]}</strong></div>
     ${apartadosHTML}
     ${tiradaHTML}
     <div style="margin-top:5px;">Puntuación de la selección actual: <strong class="puntuacion">${puntuacionSeleccionada}</strong></div>
+    ${mensajeFarkle}
     ${botonesHTML}
   `;
 
@@ -116,6 +115,15 @@ export async function crearMensajeTirada() {
   Hooks.once("renderChatMessage", (message, htmlElement) => {
     if (message.id !== msg.id) return;
 
+    if (esFarkle) {
+      apartados = [];
+      tiradaActual = [];
+      puntuacionActual = 0;
+      turnoActual = (turnoActual + 1) % jugadores.length;
+      setTimeout(() => iniciarPrimerTurno(), 500);
+      return;
+    }
+
     htmlElement.find(".dado").on("click", function () {
       const index = Number(this.dataset.index);
       const dado = tiradaActual.find(d => d.index === index);
@@ -126,28 +134,34 @@ export async function crearMensajeTirada() {
         tiradaActual.filter(d => d.seleccionado).map(d => d.valor)
       );
       htmlElement.find(".puntuacion").text(nuevaPuntuacion);
+
+      const btnTirar = htmlElement.find(".btn-tirar");
+      if (nuevaPuntuacion === 0) {
+        btnTirar.addClass("desactivado");
+      } else {
+        btnTirar.removeClass("desactivado");
+      }
     });
 
     htmlElement.find(".btn-tirar").on("click", async () => {
-  const seleccionados = tiradaActual.filter(d => d.seleccionado);
-  if (seleccionados.length === 0) {
-    ui.notifications.warn("Debes seleccionar al menos un dado para apartar.");
-    return;
-  }
+      const seleccionados = tiradaActual.filter(d => d.seleccionado);
+      if (seleccionados.length === 0) {
+        ui.notifications.warn("Debes seleccionar al menos un dado para apartar.");
+        return;
+      }
 
-  const puntos = calcularPuntuacionFarkle(seleccionados.map(d => d.valor));
+      const puntos = calcularPuntuacionFarkle(seleccionados.map(d => d.valor));
+      if (puntos === 0) {
+        ui.notifications.warn("La combinación seleccionada no es válida. Debes seleccionar solo dados puntuables.");
+        return;
+      }
 
-  if (puntos === 0) {
-    ui.notifications.warn("La combinación seleccionada no es válida. Debes seleccionar solo dados puntuables.");
-    return;
-  }
+      puntuacionActual += puntos;
+      apartados = apartados.concat(seleccionados);
 
-  puntuacionActual += puntos;
-  apartados = apartados.concat(seleccionados);
-
-  const dadosRestantes = tiradaActual.filter(d => !d.seleccionado);
-  await tirarDadosRestantes(dadosRestantes, crearMensajeTirada);
-});
+      const dadosRestantes = tiradaActual.filter(d => !d.seleccionado);
+      await tirarDadosRestantes(dadosRestantes, crearMensajeTirada);
+    });
 
     htmlElement.find(".btn-plantarse").on("click", async () => {
       const seleccionados = tiradaActual.filter(d => d.seleccionado);
@@ -191,55 +205,33 @@ export async function crearMensajeTirada() {
       apartados = [];
       tiradaActual = [];
     });
-
-    setTimeout(async () => {
-  const valoresTirada = tiradaActual.map(d => d.valor);
-  const puntuacionInicial = calcularPuntuacionFarkle(valoresTirada);
-
-  if (puntuacionInicial === 0) {
-    await ChatMessage.create({
-      speaker: ChatMessage.getSpeaker(),
-      content: `
-        <div style="text-align: center;">
-          <div style="font-size: 1.5em; font-weight: bold;">💥 ¡Farkle!</div>
-          <div style="margin-top: 6px;"><strong>${jugadores[turnoActual]} pierde el turno y no acumula puntos.</strong></div>
-        </div>
-      `
-    });
-
-    apartados = [];
-    tiradaActual = [];
-    puntuacionActual = 0;
-    turnoActual = (turnoActual + 1) % jugadores.length;
-    await iniciarPrimerTurno();
-  }
-}, 100);
-
   });
+}
 
-  // ✅ Verificación de Farkle dentro del render, tras mostrar los dados
-setTimeout(async () => {
-  const valoresTirada = tiradaActual.map(d => d.valor);
-  const puntuacionInicial = calcularPuntuacionFarkle(valoresTirada);
+  // ✅ Verificación de Farkle tras renderizar el mensaje
+  setTimeout(async () => {
+    const valoresTirada = tiradaActual.map(d => d.valor);
+    const puntuacionInicial = calcularPuntuacionFarkle(valoresTirada);
 
-  if (puntuacionInicial === 0) {
-    await ChatMessage.create({
-      speaker: ChatMessage.getSpeaker(),
-      content: `
-        <div style="text-align: center;">
-          <div style="font-size: 1.5em; font-weight: bold;">💥 ¡Farkle!</div>
-          <div style="margin-top: 6px;"><strong>${jugadores[turnoActual]} pierde el turno y no acumula puntos.</strong></div>
-        </div>
-      `
-    });
+    if (puntuacionInicial === 0) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker(),
+        content: `
+          <div style="text-align: center;">
+            <div style="font-size: 1.5em; font-weight: bold;">💥 ¡Farkle!</div>
+            <div style="margin-top: 6px;"><strong>${jugadores[turnoActual]} pierde el turno y no acumula puntos.</strong></div>
+          </div>
+        `
+      });
 
-    apartados = [];
-    tiradaActual = [];
-    puntuacionActual = 0;
-    turnoActual = (turnoActual + 1) % jugadores.length;
-    await iniciarPrimerTurno();
-  }
-}, 100); // pequeño retardo para asegurar renderizado
+      apartados = [];
+      tiradaActual = [];
+      puntuacionActual = 0;
+      turnoActual = (turnoActual + 1) % jugadores.length;
+      await iniciarPrimerTurno();
+    }
+  }, 100);
+});
 
 // === REGISTRO GLOBAL Y CREACIÓN DE MACRO/JOURNAL ===
 Hooks.once("ready", async () => {

@@ -111,3 +111,10 @@
   border: none;
   border-top: 1px solid #ccc;
 }
+
+.farkle-btn.desactivado {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+

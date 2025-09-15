@@ -13,51 +13,54 @@ export function calcularPuntuacionFarkle(dados) {
   const dadosUnicos = [...new Set(dados)].sort((a, b) => a - b);
   const totalDados = dados.length;
   let puntos = 0;
+  let esValida = false;
 
   // 🧩 Escalera completa
   const esEscaleraCompleta = totalDados === 6 && dadosUnicos.join('') === '123456';
   if (esEscaleraCompleta) return 1500;
 
+  // 🧩 Escalera parcial
+  const esEscaleraBaja = dadosUnicos.length >= 5 && dadosUnicos.slice(0, 5).join('') === '12345';
+  const esEscaleraAlta = dadosUnicos.length >= 5 && dadosUnicos.slice(0, 5).join('') === '23456';
+
+  if (esEscaleraBaja && !dadosUnicos.includes(6)) return 500;
+  if (esEscaleraAlta && !dadosUnicos.includes(1)) return 750;
+
   // 🎯 Tríos y superiores
-  const combinaciones = [];
   for (let v = 1; v <= 6; v++) {
     const cantidad = counts[v];
     if (cantidad >= 3) {
       const base = v === 1 ? 1000 : v * 100;
       const extraMultiplicador = Math.pow(2, cantidad - 3);
       puntos += base * extraMultiplicador;
-      combinaciones.push(v);
+      esValida = true;
       counts[v] -= cantidad;
     }
   }
 
   // 🎯 1s y 5s individuales
   const puntosIndividuales = counts[1] * 100 + counts[5] * 50;
-  const dadosRestantes = [];
-  for (let v = 1; v <= 6; v++) {
-    for (let i = 0; i < counts[v]; i++) {
-      dadosRestantes.push(v);
-    }
+  const tiene1sO5s = counts[1] > 0 || counts[5] > 0;
+  const tieneNoValidos = [2, 3, 4, 6].some(v => counts[v] > 0);
+
+  // ✅ Si solo hay 1s y 5s, es válida
+  if (tiene1sO5s && !tieneNoValidos) {
+    puntos += puntosIndividuales;
+    esValida = true;
   }
 
-  const hayNoPuntuables = dadosRestantes.some(d => ![1, 5].includes(d));
-  const hayPuntuables = dadosRestantes.some(d => [1, 5].includes(d));
+  // ✅ Si hay tríos + dados válidos, es válida
+  if (esValida && tiene1sO5s && !tieneNoValidos) {
+    puntos += puntosIndividuales;
+  }
 
-  // ❌ Si hay mezcla de puntuables y no puntuables, invalida la selección
-  if (hayPuntuables && hayNoPuntuables) return 0;
+  // ❌ Si hay mezcla de válidos y no válidos sin tríos, es inválida
+  if (tiene1sO5s && tieneNoValidos && !esValida) return 0;
 
-  // ✅ Si solo hay puntuables, se suman
-  if (hayPuntuables && !hayNoPuntuables) puntos += puntosIndividuales;
-
-  // ❌ Si no hay puntuables ni combinaciones, es inválido
-  if (!hayPuntuables && combinaciones.length === 0) return 0;
+  // ❌ Si solo hay dados no válidos sin formar tríos, es inválida
+  if (!tiene1sO5s && !esValida) return 0;
 
   return puntos;
-}
-
-export function calcularPuntuacionTurno(apartados, seleccionados) {
-  const todos = apartados.concat(seleccionados).map(d => d.valor);
-  return calcularPuntuacionFarkle(todos);
 }
 
 /**
