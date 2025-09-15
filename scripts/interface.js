@@ -124,24 +124,27 @@ export async function crearMensajeTirada() {
       return;
     }
 
-    htmlElement.find(".dado").on("click", function () {
-      const index = Number(this.dataset.index);
-      const dado = tiradaActual.find(d => d.index === index);
-      dado.seleccionado = !dado.seleccionado;
-      this.classList.toggle("seleccionado", dado.seleccionado);
+  htmlElement.find(".dado").off("click").on("click", function () {
+  const index = Number(this.dataset.index);
+  const dado = tiradaActual.find(d => d.index === index);
+  dado.seleccionado = !dado.seleccionado;
+  this.classList.toggle("seleccionado", dado.seleccionado);
 
-      const nuevaPuntuacion = calcularPuntuacionFarkle(
-        tiradaActual.filter(d => d.seleccionado).map(d => d.valor)
-      );
-      htmlElement.find(".puntuacion").text(nuevaPuntuacion);
+  // 🔹 Recalcular puntuación SOLO de los dados seleccionados
+  const seleccionados = tiradaActual.filter(d => d.seleccionado).map(d => d.valor);
+  const nuevaPuntuacion = calcularPuntuacionFarkle(seleccionados);
 
-      const btnTirar = htmlElement.find(".btn-tirar");
-      if (nuevaPuntuacion === 0) {
-        btnTirar.addClass("desactivado");
-      } else {
-        btnTirar.removeClass("desactivado");
-      }
-    });
+  // 🔹 Mostrar puntuación (0 si es combinación inválida)
+  htmlElement.find(".puntuacion").text(nuevaPuntuacion);
+
+  // 🔹 Bloquear o habilitar botón de tirar
+  const btnTirar = htmlElement.find(".btn-tirar");
+  if (nuevaPuntuacion === 0) {
+    btnTirar.addClass("desactivado");
+  } else {
+    btnTirar.removeClass("desactivado");
+  }
+});
 
     htmlElement.find(".btn-tirar").on("click", async () => {
       const seleccionados = tiradaActual.filter(d => d.seleccionado);

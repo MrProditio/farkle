@@ -1,5 +1,3 @@
-// farkle/scripts/puntuaciones.js
-
 /**
  * Calcula la puntuación de una tirada de Farkle según las reglas clásicas.
  * @param {number[]} dados - Array de valores de dados (1-6).
