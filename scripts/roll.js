@@ -5,7 +5,7 @@
  */
 export async function tirarDados(cantidad = 6) {
   const roll = new Roll(`${cantidad}d6`);
-  await roll.evaluate({ async: true });
+  roll.evaluate({ async: false }); // O roll.evaluateSync();
 
   // Mostrar visualmente los dados con Dice So Nice
   if (game.dice3d) {
