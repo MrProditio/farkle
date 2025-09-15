@@ -16,15 +16,15 @@ export function calcularPuntuacionFarkle(dados) {
   let esValida = false;
 
   // 🧩 Escalera completa
-  const esEscaleraCompleta = totalDados === 6 && dadosUnicos.join('') === '123456';
-  if (esEscaleraCompleta) return 1500;
+  if (totalDados === 6 && dadosUnicos.join('') === '123456') return 1500;
 
-  // 🧩 Escalera parcial
-  const esEscaleraBaja = dadosUnicos.length >= 5 && dadosUnicos.slice(0, 5).join('') === '12345';
-  const esEscaleraAlta = dadosUnicos.length >= 5 && dadosUnicos.slice(0, 5).join('') === '23456';
-
-  if (esEscaleraBaja && !dadosUnicos.includes(6)) return 500;
-  if (esEscaleraAlta && !dadosUnicos.includes(1)) return 750;
+  // 🧩 Escaleras parciales
+  if (dadosUnicos.length >= 5 && dadosUnicos.slice(0, 5).join('') === '12345' && !dadosUnicos.includes(6)) {
+    return 500;
+  }
+  if (dadosUnicos.length >= 5 && dadosUnicos.slice(0, 5).join('') === '23456' && !dadosUnicos.includes(1)) {
+    return 750;
+  }
 
   // 🎯 Tríos y superiores
   for (let v = 1; v <= 6; v++) {
@@ -34,31 +34,23 @@ export function calcularPuntuacionFarkle(dados) {
       const extraMultiplicador = Math.pow(2, cantidad - 3);
       puntos += base * extraMultiplicador;
       esValida = true;
-      counts[v] -= cantidad;
+      counts[v] -= cantidad; // eliminamos los usados
     }
   }
 
-  // 🎯 1s y 5s individuales
-const puntosIndividuales = counts[1] * 100 + counts[5] * 50;
-const tiene1sO5s = counts[1] > 0 || counts[5] > 0;
-const tieneNoValidos = [2, 3, 4, 6].some(v => counts[v] > 0);
+  // 🎯 1s y 5s individuales (pendientes de validar)
+  const puntosIndividuales = counts[1] * 100 + counts[5] * 50;
+  const tiene1sO5s = counts[1] > 0 || counts[5] > 0;
+  const tieneNoValidos = [2, 3, 4, 6].some(v => counts[v] > 0);
 
-// ✅ Si solo hay 1s y 5s → válida
-if (tiene1sO5s && !tieneNoValidos) {
+  // ❌ Si hay mezcla de válidos y no válidos sin tríos → inválida
+  if (tiene1sO5s && tieneNoValidos && !esValida) return 0;
+
+  // ❌ Si solo hay dados no válidos sin formar tríos → inválida
+  if (!tiene1sO5s && !esValida) return 0;
+
+  // ✅ Si llegamos aquí, entonces sí se pueden sumar 1s y 5s
   puntos += puntosIndividuales;
-  esValida = true;
-}
-
-// ✅ Si hay tríos + 1s o 5s → válida
-if (esValida && tiene1sO5s && !tieneNoValidos) {
-  puntos += puntosIndividuales;
-}
-
-// ❌ Si hay mezcla de válidos y no válidos sin tríos → inválida
-if (tiene1sO5s && tieneNoValidos && !esValida) return 0;
-
-// ❌ Si solo hay dados no válidos → inválida
-if (!tiene1sO5s && !esValida) return 0;
 
   return puntos;
 }
