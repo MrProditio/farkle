@@ -2,7 +2,7 @@
   "id": "farkle",
   "title": "Farkle - Juego de Dados",
   "description": "Un módulo para jugar al clásico juego de dados Farkle dentro de Foundry VTT.",
-  "version": "1.1.15",
+  "version": "1.1.16",
   "compatibility": {
     "minimum": "13",
     "verified": "13",
